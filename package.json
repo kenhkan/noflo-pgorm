@@ -36,6 +36,7 @@
   { "coffeelint": "*"
   , "coffee-script": "1.6.x"
   , "noflo-test": "0.0.x"
+  , "noflo-handyman": "0.0.x"
   }
 , "noflo":
   { "components":

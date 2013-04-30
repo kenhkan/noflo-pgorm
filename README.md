@@ -17,15 +17,17 @@ that all checks happen on the server. This simply translates what is
 given into pgSQL.
 
   1. Provide the URL to the PostgreSQL server.
-  2. It fetches table and column information from the server at
+  2. Provide an alternative primary key column if it is not the column
+     'id'.
+  3. It fetches table and column information from the server at
      initiation.
-  3. You may either 'Read' or 'Write' from/to the database.
+  4. You may either 'Read' or 'Write' from/to the database.
 
 #### Reading from Database
 
 Reading is as simple as sending the target table name and constraints to
 the 'Read' component. Each time the connection disconnects on the 'IN'
-port the ORM would translate and execute the SQL.
+port the ORM would translate the SQL.
 
 The 'IN' port accepts a series of packets. Each packet is a tuple as an
 array, in the form of `[column_name, operator, value]`.  It is the
@@ -46,11 +48,17 @@ Example:
     'id' -> GROUP Id(Group)
     'users' -> GROUP PrimaryTable()
     'things' -> GROUP SecondaryTable()
-    'username,=,elephant' -> IN Arrayify(adapters/StringToArray)
+    'username,=,elephant' -> IN Arrayify(adapters/TupleToArray)
     Arrayify() OUT -> IN SecondaryTable()
     SecondaryTable() OUT -> IN PrimaryTable()
     PrimaryTable() OUT -> IN Id()
-    Id() OUT -> IN Read(pgorm/Read) OUT -> IN Print(Output)
+    Id() OUT -> IN Read(pgorm/Read)
+    Read() TEMPLATE -> IN PrintTemplate(Output)
+    Read() OUT -> IN PrintOut(Output)
+
+If the requested table uses a primary key that is not 'id', send the
+proper primary key to the 'ID' port. This only needs to be done once at
+initialization.
 
 The connection right before `Read()` receives it should be like:
 
@@ -62,16 +70,16 @@ The connection right before `Read()` receives it should be like:
     ENDGROUP: 'users'
     ENDGROUP: 'things'
 
-`Read()` should execute:
+`PrintTemplate()` should receive:
 
-    SELECT users.* FROM users, things WHERE username = 'elephant';
+    DATA: SELECT users.* FROM users, things WHERE username = &username;
 
-`Print()` should receive:
+... while `PrintOut()` should receive:
 
     BEGINGROUP: 'id'
-    DATA: a row
-    DATA: another row
-    DATA: yet another row
+    BEGINGROUP: 'username'
+    DATA: 'elephant'
+    ENDGROUP: 'username'
     ENDGROUP: 'id'
 
 #### Writing to Database
@@ -97,7 +105,7 @@ in this case, there can be multiple groups, such as:
     ENDGROUP: 'things'
 
 The above would write to the 'users' table with a record of column 'a'
-and 'b'. The executed SQL would be:
+and 'b'. The translated SQL would be:
 
     INSERT INTO users (a,b) VALUES (1,2);
     INSERT INTO users (a,b) VALUES (3,4);
@@ -109,7 +117,7 @@ when writing to the database, records with matching columns and values
 would become an 'upsert' rather than insert.
 
 Using the previous example, assume that there is a unique constraint on
-column 'a', but only on table 'users', the executed SQL would look
+column 'a', but only on table 'users', the translated SQL would look
 something like:
 
     UPDATE users SET b=2 WHERE a=1;

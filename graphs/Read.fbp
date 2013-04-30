@@ -1,0 +1,12 @@
+EXPORT=FILTERID.IN:IN
+EXPORT=CONSTRUCT.TEMPLATE:TEMPLATE
+EXPORT=ID.OUT:OUT
+EXPORT=CONSTRUCT.ID:ID
+
+'.+' -> REGEXP FilterId(groups/FilterByGroup) GROUP -> GROUP Id(Group)
+FilterId() OUT -> IN Split(Split)
+
+Split() OUT -> IN ReadTables(groups/Read) OUT -> TABLE Construct(pgorm/ConstructRead)
+Split() OUT -> IN RemoveTables(groups/Remove) OUT -> IN Construct()
+
+Construct() OUT -> IN Id()
