@@ -1,8 +1,8 @@
-Provide a basic ORM on top of noflo-postgres [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-postgres-orm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-postgres-orm)
+Provide a basic ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pg-orm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pg-orm)
 ===============================
 
 This is an Object-Relational Mapping interface to
-[noflo-postgres](https://github.com/kenhkan/noflo-postgres).
+[noflo-pg](https://github.com/kenhkan/noflo-pg).
 
 Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
@@ -50,7 +50,7 @@ Example:
     Arrayify() OUT -> IN SecondaryTable()
     SecondaryTable() OUT -> IN PrimaryTable()
     PrimaryTable() OUT -> IN Id()
-    Id() OUT -> IN Read(postgres-orm/Read) OUT -> IN Print(Output)
+    Id() OUT -> IN Read(pg-orm/Read) OUT -> IN Print(Output)
 
 The connection right before `Read()` receives it should be like:
 

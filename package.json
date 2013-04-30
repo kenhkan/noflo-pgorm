@@ -1,5 +1,5 @@
-{ "name": "noflo-postgres-orm"
-, "description": "Provide a basic ORM on top of noflo-postgres"
+{ "name": "noflo-pg-orm"
+, "description": "Provide a basic ORM on top of noflo-pg"
 , "keywords":
   [ "noflo"
   , "database"
@@ -16,7 +16,7 @@
 , "version": "0.0.1"
 , "licenses":
   [ { "type": "MIT"
-    , "url": "https://github.com/kenhkan/noflo-postgres-orm/blob/master/LICENSE.md"
+    , "url": "https://github.com/kenhkan/noflo-pg-orm/blob/master/LICENSE.md"
     }
   ]
 , "engines":
@@ -24,13 +24,13 @@
   }
 , "repository":
   { "type": "git"
-  , "url": "git://github.com/kenhkan/noflo-postgres-orm"
+  , "url": "git://github.com/kenhkan/noflo-pg-orm"
   }
 , "dependencies":
   { "noflo": "0.3.x"
   , "underscore": "1.4.x"
   , "underscore.string": "2.3.x"
-  , "noflo-postgres": "0.0.x"
+  , "noflo-pg": "0.0.x"
   }
 , "devDependencies":
   { "coffeelint": "*"
