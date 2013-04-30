@@ -1,5 +1,5 @@
 { "name": "noflo-pgorm"
-, "description": "Provide a basic ORM on top of noflo-pg"
+, "description": "PostgreSQL ORM on top of noflo-pg"
 , "keywords":
   [ "noflo"
   , "database"
@@ -41,6 +41,8 @@
 , "noflo":
   { "components":
     { "ConstructRead": "./components/ConstructRead.coffee"
+    , "ConstructWrite": "./components/ConstructWrite.coffee"
+    , "SanitizeObjects": "./components/SanitizeObjects.coffee"
     }
   , "graphs":
     { "Read": "./graphs/Read.fbp"

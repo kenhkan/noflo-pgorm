@@ -1,4 +1,4 @@
-Provide a basic ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pgorm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pgorm)
+PostgreSQL ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pgorm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pgorm)
 ===============================
 
 This is an Object-Relational Mapping interface to
@@ -23,7 +23,7 @@ given into pgSQL.
      initiation.
   4. You may either 'Read' or 'Write' from/to the database.
 
-#### Reading from Database
+### Reading from Database
 
 Reading is as simple as sending the target table name and constraints to
 the 'Read' component. Each time the connection disconnects on the 'IN'
@@ -74,7 +74,7 @@ The connection right before `Read()` receives it should be like:
 
     DATA: SELECT users.* FROM users, things WHERE username = &username;
 
-... while `PrintOut()` should receive:
+while `PrintOut()` should receive:
 
     BEGINGROUP: 'id'
     BEGINGROUP: 'username'
@@ -82,7 +82,7 @@ The connection right before `Read()` receives it should be like:
     ENDGROUP: 'username'
     ENDGROUP: 'id'
 
-#### Writing to Database
+### Writing to Database
 
 Writing is handled by the 'Write' component. The 'IN' port expects a
 series of packets, each of which is an object to be translated into SQL.
@@ -91,43 +91,79 @@ For instance:
     DATA: { "a": 1, "b": 2 }
     DATA: { "a": 3, "b": 4 }
 
-It filters out all keys that do not have corresponding columns. The
-packets, like `Read()` must also be grouped by the table name, except
-in this case, there can be multiple groups, such as:
+It filters out all keys that do not have corresponding columns, *but
+only* when it has been provided table and column information via the
+'DEFINITION' port. For example:
 
     BEGINGROUP: 'users'
-    DATA: { "a": 1, "b": 2 }
-    DATA: { "a": 3, "b": 4 }
+    DATA: 'id'
+    DATA: 'name'
+    ENDGROUP: 'users'
+
+The above would filter out all properites that are not 'id' or 'name'
+and only allow table with the name 'users' to be constructed as SQL. If
+nothing is passed to 'DEFINITION', everything is allowed.
+
+The packets, like `Read()`, must also be grouped by the table name,
+except in this case, there can be multiple groups, such as:
+
+    BEGINGROUP: 'users'
+    DATA: { "id": 1, "name": "elephant" }
     ENDGROUP: 'users'
     BEGINGROUP: 'things'
-    DATA: { "a": 1, "b": 2 }
-    DATA: { "a": 3, "b": 4 }
+    DATA: { "id": 3, "type": "person" }
     ENDGROUP: 'things'
 
-The above would write to the 'users' table with a record of column 'a'
-and 'b'. The translated SQL would be:
+#### The Template
 
-    INSERT INTO users (a,b) VALUES (1,2);
-    INSERT INTO users (a,b) VALUES (3,4);
-    INSERT INTO things (a,b) VALUES (1,2);
-    INSERT INTO things (a,b) VALUES (3,4);
+The above would write to the 'users' and the 'things' tables. The
+translated SQL would be:
 
-Upon initialization, the ORM fetches unique indexes from the server and
-when writing to the database, records with matching columns and values
-would become an 'upsert' rather than insert.
+    BEGIN;
+      SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
-Using the previous example, assume that there is a unique constraint on
-column 'a', but only on table 'users', the translated SQL would look
-something like:
+      UPDATE users SET id=&users_id_1, name=&users_name_1
+        WHERE id = &users_id_1;
+      INSERT INTO users (id, name)
+        SELECT &users_id_1, &users_name_1
+        WHERE NOT EXISTS (SELECT 1 FROM users WHERE id = &users_id_1);
 
-    UPDATE users SET b=2 WHERE a=1;
-    UPDATE users SET b=4 WHERE a=3;
-    INSERT INTO things (a,b) VALUES (1,2);
-    INSERT INTO things (a,b) VALUES (3,4);
+      UPDATE things SET id=&things_id_3, type=&things_type_3
+        WHERE id = &things_id_3;
+      INSERT INTO things (id, type)
+        SELECT &things_id_3, &things_type_3
+        WHERE NOT EXISTS (SELECT 3 FROM things WHERE id = &things_id_3);
+    END;
 
-This is the simplistic view, as the ORM would insert the 'users' records
-if they're not found. This is done by injecting an 'upsert' CTE at
-initialization.
+This template uses dirty upsert for PostgreSQL, stolen from [bovine's
+answer on this StackOverflow
+question](http://stackoverflow.com/questions/1109061/insert-on-duplicate-update-postgresql).
+This dirty solution is good enough for most cases unless you use
+autoincrement on the primary key and your transaction is large, or in any
+scenario where ID collision upon row creation is frequent. It is
+recommended that you use UUID to avoid any problem. Upserting is a
+[complicated
+problem](http://www.depesz.com/2012/06/10/why-is-upsert-so-complicated/)
+so some compromises must be made.
 
-At the moment, only simple unique constraints are detected (i.e. unique
-constraints that are applied on only one column).
+#### The Values
+
+Just like 'Read', 'Write' produces a template with values to be fed into
+'pg/Postgres'. The above template would be accompanied by the values as
+output to the 'OUT' port:
+
+    BEGINGROUP: 'users_id_1'
+    DATA: '1'
+    ENDGROUP: 'users_id_1'
+    BEGINGROUP: 'users_name_1'
+    DATA: 'elephant'
+    ENDGROUP: 'users_name_1'
+    BEGINGROUP: 'things_id_1'
+    DATA: '3'
+    ENDGROUP: 'things_id_1'
+    BEGINGROUP: 'things_type_1'
+    DATA: 'person'
+    ENDGROUP: 'things_type_1'
+
+And just like 'Read', 'Write' assumes the primary key to be 'id'. Pass
+another primary key to the 'ID' port of 'Write' to change it.

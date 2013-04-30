@@ -35,8 +35,7 @@ class ConstructRead extends noflo.Component
       @constraints.push data if _.isArray data
 
     @inPorts.in.on "disconnect", =>
-      template = @constructTemplate()
-      @outPorts.template.send template
+      @outPorts.template.send @constructTemplate()
       @outPorts.template.disconnect()
 
       @outPorts.out.connect()
