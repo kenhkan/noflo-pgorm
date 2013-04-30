@@ -1,4 +1,4 @@
-{ "name": "noflo-pg-orm"
+{ "name": "noflo-pgorm"
 , "description": "Provide a basic ORM on top of noflo-pg"
 , "keywords":
   [ "noflo"
@@ -16,7 +16,7 @@
 , "version": "0.0.1"
 , "licenses":
   [ { "type": "MIT"
-    , "url": "https://github.com/kenhkan/noflo-pg-orm/blob/master/LICENSE.md"
+    , "url": "https://github.com/kenhkan/noflo-pgorm/blob/master/LICENSE.md"
     }
   ]
 , "engines":
@@ -24,7 +24,7 @@
   }
 , "repository":
   { "type": "git"
-  , "url": "git://github.com/kenhkan/noflo-pg-orm"
+  , "url": "git://github.com/kenhkan/noflo-pgorm"
   }
 , "dependencies":
   { "noflo": "0.3.x"
@@ -38,7 +38,13 @@
   , "noflo-test": "0.0.x"
   }
 , "noflo":
-  {
+  { "components":
+    { "ConstructRead": "./components/ConstructRead.coffee"
+    }
+  , "graphs":
+    { "Read": "./graphs/Read.fbp"
+    , "Write": "./graphs/Write.fbp"
+    }
   }
 , "scripts":
   { "pretest": "./node_modules/.bin/coffeelint -r components"

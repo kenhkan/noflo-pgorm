@@ -1,4 +1,4 @@
-Provide a basic ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pg-orm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pg-orm)
+Provide a basic ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pgorm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pgorm)
 ===============================
 
 This is an Object-Relational Mapping interface to
@@ -46,11 +46,11 @@ Example:
     'id' -> GROUP Id(Group)
     'users' -> GROUP PrimaryTable()
     'things' -> GROUP SecondaryTable()
-    'username,=,'elephant'' -> IN Arrayify(adapters/StringToArray)
+    'username,=,elephant' -> IN Arrayify(adapters/StringToArray)
     Arrayify() OUT -> IN SecondaryTable()
     SecondaryTable() OUT -> IN PrimaryTable()
     PrimaryTable() OUT -> IN Id()
-    Id() OUT -> IN Read(pg-orm/Read) OUT -> IN Print(Output)
+    Id() OUT -> IN Read(pgorm/Read) OUT -> IN Print(Output)
 
 The connection right before `Read()` receives it should be like:
 
@@ -80,21 +80,21 @@ Writing is handled by the 'Write' component. The 'IN' port expects a
 series of packets, each of which is an object to be translated into SQL.
 For instance:
 
-   DATA: { "a": 1, "b": 2 }
-   DATA: { "a": 3, "b": 4 }
+    DATA: { "a": 1, "b": 2 }
+    DATA: { "a": 3, "b": 4 }
 
 It filters out all keys that do not have corresponding columns. The
 packets, like `Read()` must also be grouped by the table name, except
 in this case, there can be multiple groups, such as:
 
-   BEGINGROUP: 'users'
-   DATA: { "a": 1, "b": 2 }
-   DATA: { "a": 3, "b": 4 }
-   ENDGROUP: 'users'
-   BEGINGROUP: 'things'
-   DATA: { "a": 1, "b": 2 }
-   DATA: { "a": 3, "b": 4 }
-   ENDGROUP: 'things'
+    BEGINGROUP: 'users'
+    DATA: { "a": 1, "b": 2 }
+    DATA: { "a": 3, "b": 4 }
+    ENDGROUP: 'users'
+    BEGINGROUP: 'things'
+    DATA: { "a": 1, "b": 2 }
+    DATA: { "a": 3, "b": 4 }
+    ENDGROUP: 'things'
 
 The above would write to the 'users' table with a record of column 'a'
 and 'b'. The executed SQL would be:
