@@ -1,0 +1,17 @@
+EXPORT=URL.IN:SERVER
+EXPORT=WRITE.IN:WRITEIN
+EXPORT=WRITESERVER.OUT:WRITEOUT
+EXPORT=READ.IN:READIN
+EXPORT=READSERVER.OUT:READOUT
+
+Url(Split) OUT -> SERVER WriteServer(pg/Postgres)
+
+Write(pgorm/Write) TOKEN -> TOKEN WriteServer()
+Write() TEMPLATE -> TEMPLATE WriteServer()
+Write() OUT -> IN WriteServer()
+
+Url() OUT -> SERVER ReadServer(pg/Postgres)
+
+Read(pgorm/Read) TOKEN -> TOKEN ReadServer()
+Read() TEMPLATE -> TEMPLATE ReadServer()
+Read() OUT -> IN ReadServer()

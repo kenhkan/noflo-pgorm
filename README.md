@@ -4,17 +4,9 @@ PostgreSQL ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/
 This is an Object-Relational Mapping interface to
 [noflo-pg](https://github.com/kenhkan/noflo-pg).
 
-Feel free to contribute new components and graphs! I'll try to
-incorporate as soon as time allows.
-
-
-API
-------------------------------
-
-Aside from table and column information fetched from the server at
-initialization, this ORM does not actively manage your schema, meaning
-that all checks happen on the server. This simply translates what is
-given into pgSQL.
+This ORM does not actively manage your schema, meaning that all checks
+happen on the server. This simply translates what is given into pgSQL.
+The basic workflow would be something like:
 
   1. Provide the URL to the PostgreSQL server.
   2. Provide an alternative primary key column if it is not the column
@@ -22,6 +14,13 @@ given into pgSQL.
   3. It fetches table and column information from the server at
      initiation.
   4. You may either 'Read' or 'Write' from/to the database.
+
+Feel free to contribute new components and graphs! I'll try to
+incorporate as soon as time allows.
+
+
+Lower Level Read/Write API
+------------------------------
 
 
 ### Reading from Database
@@ -54,6 +53,7 @@ Example:
     SecondaryTable() OUT -> IN PrimaryTable()
     PrimaryTable() OUT -> IN Id()
     Id() OUT -> IN Read(pgorm/Read)
+    Read() TOKEN -> IN PrintToken(Output)
     Read() TEMPLATE -> IN PrintTemplate(Output)
     Read() OUT -> IN PrintOut(Output)
 
@@ -164,3 +164,39 @@ output to the 'OUT' port:
 
 And just like 'Read', 'Write' assumes the primary key to be 'id'. Pass
 another primary key to the 'ID' port of 'Write' to change it.
+
+
+Higher Level API
+------------------------------
+
+If you don't need to manage the `pg/Postgres` yourself, it is encouraged
+to use the high level API. The API works basically the same as using
+'Read' and 'Write' directly, except that queries are sent via the
+'READIN', 'READOUT', 'WRITEIN', and 'WRITEOUT' ports.
+
+Example:
+
+    'tcp://localhost:5432/postgres' -> SERVER Database(pgorm/Database)
+    '2' -> THRESHOLD Merge(flow/CountedMerge)
+    'token' -> GROUP Token(Group)
+
+    'users' -> GROUP TableA(Group)
+    '{ "id": "x", "a": 1, "b": 2 }' -> IN ParseA(ParseJson) OUT -> IN TableA()
+
+    'things' -> GROUP TableB(Group)
+    '{ "id": "y", "c": 3 }' -> IN ParseB(ParseJson) OUT -> IN TableB()
+
+    TableA() OUT -> IN Merge()
+    TableB() OUT -> IN Merge()
+
+    Merge() OUT -> IN Token() OUT -> WRITEIN Database()
+    Database() WRITEOUT -> IN Output(Output)
+
+Of course, if your query is already well-formed, it simply looks like:
+
+    'tcp://localhost:5432/postgres' -> SERVER Database(pgorm/Database)
+    <<YOUR QUERIES HERE>> -> WRITEIN Database()
+    Database() WRITEOUT -> IN Output(Output)
+
+Use 'READIN' and 'READOUT' ports as specified above specified in the
+"Reading from Database" section.

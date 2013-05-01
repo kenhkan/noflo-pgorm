@@ -48,6 +48,7 @@
   , "graphs":
     { "Read": "./graphs/Read.fbp"
     , "Write": "./graphs/Write.fbp"
+    , "Database": "./graphs/Database.fbp"
     }
   }
 , "scripts":
