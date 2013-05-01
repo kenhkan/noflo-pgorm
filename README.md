@@ -35,9 +35,9 @@ equivalent to the SQL construct of `column_name operator value`, as in
 `username = elephant`. Note that the value does not need to be quoted as
 the ORM would sanitize it for you.
 
-You must group this series of packets with an ID, which would be used to
-group the output, since this is an asynchronous operation. Inside the ID
-group, you must also group the packets with a number of groups
+You must group this series of packets with an TOKEN, which would be used
+to group the output, since this is an asynchronous operation. Inside the
+TOKEN group, you must also group the packets with a number of groups
 representing the tables to fetch from.
 
 You may optionally pass no packets but simply group(s) to fetch
@@ -45,31 +45,31 @@ everything in the said tables.
 
 Example:
 
-    'id' -> GROUP Id(Group)
+    'token' -> GROUP Token(Group)
     'users' -> GROUP PrimaryTable()
     'things' -> GROUP SecondaryTable()
     'username,=,elephant' -> IN Arrayify(adapters/TupleToArray)
     Arrayify() OUT -> IN SecondaryTable()
     SecondaryTable() OUT -> IN PrimaryTable()
-    PrimaryTable() OUT -> IN Id()
-    Id() OUT -> IN Read(pgorm/Read)
+    PrimaryTable() OUT -> IN Token()
+    Token() OUT -> IN Read(pgorm/Read)
     Read() TOKEN -> IN PrintToken(Output)
     Read() TEMPLATE -> IN PrintTemplate(Output)
     Read() OUT -> IN PrintOut(Output)
 
 If the requested table uses a primary key that is not 'id', send the
-proper primary key to the 'ID' port. This only needs to be done once at
+proper primary key to the 'TOKEN' port. This only needs to be done once at
 initialization.
 
 The connection right before `Read()` receives it should be like:
 
-    BEGINGROUP: 'id'
+    BEGINGROUP: 'token'
     BEGINGROUP: 'users'
     BEGINGROUP: 'things'
     DATA: 'username,=,elephant'
-    ENDGROUP: 'id'
-    ENDGROUP: 'users'
     ENDGROUP: 'things'
+    ENDGROUP: 'users'
+    ENDGROUP: 'token'
 
 `PrintTemplate()` should receive:
 
@@ -77,11 +77,11 @@ The connection right before `Read()` receives it should be like:
 
 while `PrintOut()` should receive:
 
-    BEGINGROUP: 'id'
+    BEGINGROUP: 'token'
     BEGINGROUP: 'username'
     DATA: 'elephant'
     ENDGROUP: 'username'
-    ENDGROUP: 'id'
+    ENDGROUP: 'token'
 
 
 ### Writing to Database
@@ -137,7 +137,7 @@ answer on this StackOverflow
 question](http://stackoverflow.com/questions/1109061/insert-on-duplicate-update-postgresql).
 This dirty solution is good enough for most cases unless you use
 autoincrement on the primary key and your transaction is large, or in any
-scenario where ID collision upon row creation is frequent. It is
+scenario where primary key collision upon row creation is frequent. It is
 recommended that you use UUID to avoid any problem. Upserting is a
 [complicated
 problem](http://www.depesz.com/2012/06/10/why-is-upsert-so-complicated/)
@@ -163,7 +163,7 @@ output to the 'OUT' port:
     ENDGROUP: 'things_type_1'
 
 And just like 'Read', 'Write' assumes the primary key to be 'id'. Pass
-another primary key to the 'ID' port of 'Write' to change it.
+another primary key to the 'PKEY' port of 'Write' to change it.
 
 
 Higher Level API

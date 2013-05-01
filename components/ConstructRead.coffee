@@ -8,19 +8,19 @@ class ConstructRead extends noflo.Component
   tables and constraints"
 
   constructor: ->
-    @id = "id"
+    @pkey = "id"
     @tables = []
     @constraints = []
 
     @inPorts =
       in: new noflo.Port
       table: new noflo.Port
-      id: new noflo.Port
+      pkey: new noflo.Port
     @outPorts =
       template: new noflo.Port
       out: new noflo.Port
 
-    @inPorts.id.on "data", (@id) =>
+    @inPorts.pkey.on "data", (@pkey) =>
 
     @inPorts.table.on "connect", =>
       @tables = []
@@ -49,7 +49,7 @@ class ConstructRead extends noflo.Component
   constructTemplate: ->
     primary = _.first @tables
     tables = @tables.join ", "
-    firstClause = "SELECT DISTINCT ON (#{@id}) #{primary}.* FROM #{tables}"
+    firstClause = "SELECT DISTINCT ON (#{@pkey}) #{primary}.* FROM #{tables}"
     secondClause = ""
 
     constStrings = []

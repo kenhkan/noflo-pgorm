@@ -8,17 +8,17 @@ class ConstructWrite extends noflo.Component
   objects"
 
   constructor: ->
-    @id = "id"
+    @pkey = "id"
     @table = null
 
     @inPorts =
       in: new noflo.Port
-      id: new noflo.Port
+      pkey: new noflo.Port
     @outPorts =
       template: new noflo.Port
       out: new noflo.Port
 
-    @inPorts.id.on "data", (@id) =>
+    @inPorts.pkey.on "data", (@pkey) =>
 
     @inPorts.in.on "connect", =>
       @objects = {}
@@ -40,7 +40,7 @@ class ConstructWrite extends noflo.Component
 
       for table, objects of @objects
         for object in objects
-          id = object[@id]
+          id = object[@pkey]
 
           for key, value of object
             @outPorts.out.beginGroup @constructPlaceholder table, key, id, ""
@@ -58,10 +58,10 @@ class ConstructWrite extends noflo.Component
 
     for table, objects of @objects
       for object in objects
-        id = object[@id]
+        id = object[@pkey]
         keys = _.keys object
 
-        idTemplate = "#{@id} = #{@constructPlaceholder(table, @id, id)}"
+        idTemplate = "#{@pkey} = #{@constructPlaceholder(table, @pkey, id)}"
 
         selects = _.map keys, (key) =>
           @constructPlaceholder table, key, id

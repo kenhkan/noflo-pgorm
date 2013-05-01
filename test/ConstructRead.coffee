@@ -20,7 +20,7 @@ test.component("pgorm/ConstructRead").
 
   next().
   discuss("set a different primary key").
-    send.data("id", "uuid").
+    send.data("pkey", "uuid").
   discuss("send in some tables").
     send.data("table", "users").
     send.data("table", "things").
