@@ -23,6 +23,7 @@ given into pgSQL.
      initiation.
   4. You may either 'Read' or 'Write' from/to the database.
 
+
 ### Reading from Database
 
 Reading is as simple as sending the target table name and constraints to
@@ -82,15 +83,11 @@ while `PrintOut()` should receive:
     ENDGROUP: 'username'
     ENDGROUP: 'id'
 
+
 ### Writing to Database
 
 Writing is handled by the 'Write' component. The 'IN' port expects a
 series of packets, each of which is an object to be translated into SQL.
-For instance:
-
-    DATA: { "a": 1, "b": 2 }
-    DATA: { "a": 3, "b": 4 }
-
 It filters out all keys that do not have corresponding columns, *but
 only* when it has been provided table and column information via the
 'DEFINITION' port. For example:

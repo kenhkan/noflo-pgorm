@@ -1,8 +1,9 @@
 EXPORT=FILTERID.IN:IN
 EXPORT=CONSTRUCT.TEMPLATE:TEMPLATE
-EXPORT=ID.OUT:OUT
+EXPORT=CONSTRUCT.OUT:OUT
 EXPORT=CONSTRUCT.ID:ID
 EXPORT=SANITIZE.DEFINITION:DEFINITION
+EXPORT=FILTERID.GROUP:TOKEN
 
-'.+' -> REGEXP FilterId(groups/FilterByGroup) GROUP -> GROUP Id(Group)
-FilterId() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite) OUT -> IN Id()
+'.+' -> REGEXP FilterId(groups/FilterByGroup)
+FilterId() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite)

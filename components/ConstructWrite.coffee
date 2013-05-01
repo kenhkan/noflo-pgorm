@@ -35,7 +35,6 @@ class ConstructWrite extends noflo.Component
 
     @inPorts.in.on "disconnect", =>
       @outPorts.template.send @constructTemplate()
-      @outPorts.template.disconnect()
 
       @outPorts.out.connect()
 
@@ -49,6 +48,7 @@ class ConstructWrite extends noflo.Component
             @outPorts.out.endGroup()
 
       @outPorts.out.disconnect()
+      @outPorts.template.disconnect()
 
   constructPlaceholder: (table, key, id, prefix = "&") ->
     "#{prefix}#{table}_#{key}_#{id}"
