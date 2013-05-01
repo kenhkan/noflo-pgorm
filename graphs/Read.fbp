@@ -7,5 +7,5 @@ EXPORT=FILTERID.GROUP:TOKEN
 '.+' -> REGEXP FilterId(groups/FilterByGroup)
 FilterId() OUT -> IN Split(Split)
 
-Split() OUT -> IN ReadTables(groups/Read) OUT -> TABLE Construct(pgorm/ConstructRead)
-Split() OUT -> IN RemoveTables(groups/Remove) OUT -> IN Construct()
+Split() OUT -> IN ReadTables(groups/ReadGroups) OUT -> TABLE Construct(pgorm/ConstructRead)
+Split() OUT -> IN RemoveTables(groups/RemoveGroups) OUT -> IN Construct()
