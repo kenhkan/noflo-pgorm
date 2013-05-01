@@ -19,7 +19,7 @@ class SanitizeObjects extends noflo.Component
 
     @inPorts.definition.on "begingroup", (table) =>
       @table = table
-      @definitions[@table] = []
+      @definitions[@table] ?= []
 
     @inPorts.definition.on "data", (def) =>
       @definitions[@table].push def

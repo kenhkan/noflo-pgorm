@@ -32,6 +32,7 @@
   , "underscore.string": "2.3.x"
   , "noflo-pg": "0.0.x"
   , "noflo-groups": "0.0.x"
+  , "noflo-objects": "0.0.x"
   }
 , "devDependencies":
   { "coffeelint": "*"

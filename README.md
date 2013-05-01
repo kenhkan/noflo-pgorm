@@ -6,7 +6,7 @@ This is an Object-Relational Mapping interface to
 
 This ORM does not actively manage your schema, meaning that all checks
 happen on the server. This simply translates what is given into pgSQL.
-The basic workflow would be something like:
+A basic workflow would be something like:
 
   1. Provide the URL to the PostgreSQL server.
   2. Provide an alternative primary key column if it is not the column
@@ -19,9 +19,8 @@ Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
 
 
-Lower Level Read/Write API
+SQL Translation API
 ------------------------------
-
 
 ### Reading from Database
 
@@ -166,7 +165,7 @@ And just like 'Read', 'Write' assumes the primary key to be 'id'. Pass
 another primary key to the 'PKEY' port of 'Write' to change it.
 
 
-Higher Level API
+Direct Execution API
 ------------------------------
 
 If you don't need to manage the `pg/Postgres` yourself, it is encouraged
@@ -200,3 +199,12 @@ Of course, if your query is already well-formed, it simply looks like:
 
 Use 'READIN' and 'READOUT' ports as specified above specified in the
 "Reading from Database" section.
+
+
+### Automatic Table/Column Existence Check
+
+'pgorm/Database' also automatically filter incoming queries for invalid
+tables and columns. This is possible as 'Database' fetches table/column
+information from the server on initialization. The downside, of course,
+is when the schema has changed on the PostgreSQL server the NoFlo
+network needs to be refreshed.
