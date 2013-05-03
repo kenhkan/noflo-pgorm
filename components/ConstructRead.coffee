@@ -39,6 +39,7 @@ class ConstructRead extends noflo.Component
       @outPorts.template.disconnect()
 
       @outPorts.out.connect()
+      @outPorts.out.send null if _.isEmpty @constraints
       for constraint in @constraints
         [column, operator, value] = constraint
         @outPorts.out.beginGroup column
