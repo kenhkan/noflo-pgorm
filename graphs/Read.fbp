@@ -1,11 +1,16 @@
-EXPORT=FILTERID.IN:IN
-EXPORT=CONSTRUCT.TEMPLATE:TEMPLATE
-EXPORT=CONSTRUCT.OUT:OUT
+EXPORT=FILTERTOKEN.IN:IN
+EXPORT=READSERVER.OUT:OUT
+EXPORT=READSERVER.SERVER:SERVER
 EXPORT=CONSTRUCT.PKEY:PKEY
-EXPORT=FILTERID.GROUP:TOKEN
+EXPORT=READSERVER.ERROR:ERROR
+EXPORT=READSERVER.QUIT:QUIT
 
-'.+' -> REGEXP FilterId(groups/FilterByGroup)
-FilterId() OUT -> IN Split(Split)
+'.+' -> REGEXP FilterToken(groups/FilterByGroup)
+FilterToken() OUT -> IN Split(Split)
 
 Split() OUT -> IN ReadTables(groups/ReadGroups) OUT -> TABLE Construct(pgorm/ConstructRead)
 Split() OUT -> IN RemoveTables(groups/RemoveGroups) OUT -> IN Construct()
+
+FilterToken() GROUP -> TOKEN ReadServer(pg/Postgres)
+Construct() TEMPLATE -> TEMPLATE ReadServer()
+Construct() OUT -> IN ReadServer()

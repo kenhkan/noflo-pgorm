@@ -2,65 +2,68 @@ PostgreSQL ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/
 ===============================
 
 This is an Object-Relational Mapping interface to
-[noflo-pg](https://github.com/kenhkan/noflo-pg).
+[noflo-pg](https://github.com/kenhkan/noflo-pg). This ORM tries to be a
+thin layer on top of noflo-pg's raw access to a pgSQL server. It
+contains two usable components, one for `Read`ing and another for
+`Write`ing. A basic workflow would be something like:
 
-This ORM does not actively manage your schema, meaning that all checks
-happen on the server. This simply translates what is given into pgSQL.
-A basic workflow would be something like:
-
-  1. Provide the URL to the PostgreSQL server.
+  1. Provide the URL to either the 'Read' or 'Write' component.
   2. Provide an alternative primary key column if it is not the column
      'id'.
   3. It fetches table and column information from the server at
      initiation.
-  4. You may either 'Read' or 'Write' from/to the database.
+  4. You may then 'Read' or 'Write' from/to the database.
 
 Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
 
 
-SQL Translation API
+API
 ------------------------------
 
-### Reading from Database
+### Reading from PostgreSQL
 
 Reading is as simple as sending the target table name and constraints to
-the 'Read' component. Each time the connection disconnects on the 'IN'
-port the ORM would translate the SQL.
+the 'Read' component.
+
+First set up a component with a server URL.
+
+    'tcp://default@localhost:5432/postgres' -> SERVER Read(pgorm/Read)
 
 The 'IN' port accepts a series of packets. Each packet is a tuple as an
-array, in the form of `[column_name, operator, value]`.  It is the
+array, in the form of `[column_name, operator, value]`. It is the
 equivalent to the SQL construct of `column_name operator value`, as in
 `username = elephant`. Note that the value does not need to be quoted as
 the ORM would sanitize it for you.
+
+    'username,=,elephant' -> IN Arrayify(adapters/TupleToArray)
+    Arrayify() OUT -> IN Read()
 
 You must group this series of packets with an TOKEN, which would be used
 to group the output, since this is an asynchronous operation. Inside the
 TOKEN group, you must also group the packets with a number of groups
 representing the tables to fetch from.
 
+    'token' -> GROUP Token(Group)
+    'username,=,elephant' -> IN Arrayify(adapters/TupleToArray)
+    Arrayify() OUT -> IN Token() OUT -> IN Read()
+
 You may optionally pass no packets but simply group(s) to fetch
 everything in the said tables.
 
-Example:
+    'token' -> GROUP Token(Group)
+    '_' -> IN Empty(Kick) OUT -> IN Token() OUT -> IN Read()
+
+A more complete example:
 
     'token' -> GROUP Token(Group)
-    'users' -> GROUP PrimaryTable()
-    'things' -> GROUP SecondaryTable()
+    ',' -> DELIMITER SplitTables(SplitStr)
+    'users,things' -> IN SplitTables() OUT -> GROUP Tables(Group)
     'username,=,elephant' -> IN Arrayify(adapters/TupleToArray)
-    Arrayify() OUT -> IN SecondaryTable()
-    SecondaryTable() OUT -> IN PrimaryTable()
-    PrimaryTable() OUT -> IN Token()
-    Token() OUT -> IN Read(pgorm/Read)
-    Read() TOKEN -> IN PrintToken(Output)
-    Read() TEMPLATE -> IN PrintTemplate(Output)
-    Read() OUT -> IN PrintOut(Output)
+    Arrayify() OUT -> IN Tables() OUT -> IN Token()
+    Token() OUT -> IN Read(pgorm/Read) OUT -> IN Rows(Output)
 
-If the requested table uses a primary key that is not 'id', send the
-proper primary key to the 'TOKEN' port. This only needs to be done once at
-initialization.
-
-The connection right before `Read()` receives it should be like:
+`Read()` receives:
 
     BEGINGROUP: 'token'
     BEGINGROUP: 'users'
@@ -70,38 +73,37 @@ The connection right before `Read()` receives it should be like:
     ENDGROUP: 'users'
     ENDGROUP: 'token'
 
-`PrintTemplate()` should receive:
+The executed SQL should be something like:
 
-    DATA: SELECT users.* FROM users, things WHERE username = &username;
+    SELECT users.* FROM users, things WHERE username = 'elephant';
 
-while `PrintOut()` should receive:
+while `Rows()` should receive something similar to:
 
     BEGINGROUP: 'token'
-    BEGINGROUP: 'username'
-    DATA: 'elephant'
-    ENDGROUP: 'username'
+    DATA: {
+        ...
+        username: 'elephant'
+        ...
+      }
     ENDGROUP: 'token'
 
 
-### Writing to Database
+### Writing to PostgreSQL
 
-Writing is handled by the 'Write' component. The 'IN' port expects a
-series of packets, each of which is an object to be translated into SQL.
-It filters out all keys that do not have corresponding columns, *but
-only* when it has been provided table and column information via the
-'DEFINITION' port. For example:
+Writing is handled by the 'Write' component, very similar to the 'Read'
+component except it fetches table and column information from the
+PostgreSQL server at initialization so that it can filter out invalid
+tables and columns when executing SQL.
 
-    BEGINGROUP: 'users'
-    DATA: 'id'
-    DATA: 'name'
-    ENDGROUP: 'users'
+First set up a component with a server URL.
 
-The above would filter out all properites that are not 'id' or 'name'
-and only allow table with the name 'users' to be constructed as SQL. If
-nothing is passed to 'DEFINITION', everything is allowed.
+    'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
 
-The packets, like `Read()`, must also be grouped by the table name,
-except in this case, there can be multiple groups, such as:
+The 'IN' port expects a series of packets, each of which is an object to
+be translated into SQL. It filters out all keys that do not have
+corresponding columns.
+
+The packets, like `Read()`, must also be grouped by the table name:
 
     BEGINGROUP: 'users'
     DATA: { "id": 1, "name": "elephant" }
@@ -110,10 +112,10 @@ except in this case, there can be multiple groups, such as:
     DATA: { "id": 3, "type": "person" }
     ENDGROUP: 'things'
 
-#### The Template
+#### Note on ORM's attempt to upsert
 
 The above would write to the 'users' and the 'things' tables. The
-translated SQL would be:
+executed SQL would be something like:
 
     BEGIN;
       SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
@@ -131,80 +133,72 @@ translated SQL would be:
         WHERE NOT EXISTS (SELECT 3 FROM things WHERE id = &things_id_3);
     END;
 
-This template uses dirty upsert for PostgreSQL, stolen from [bovine's
-answer on this StackOverflow
+It uses dirty upsert for PostgreSQL, stolen from [bovine's answer on
+this StackOverflow
 question](http://stackoverflow.com/questions/1109061/insert-on-duplicate-update-postgresql).
 This dirty solution is good enough for most cases unless you use
-autoincrement on the primary key and your transaction is large, or in any
-scenario where primary key collision upon row creation is frequent. It is
-recommended that you use UUID to avoid any problem. Upserting is a
+autoincrement on the primary key and your transaction is large, or in
+any scenario where primary key collision upon row creation is frequent.
+It is recommended that you use UUID to avoid any problem. Upserting is a
 [complicated
 problem](http://www.depesz.com/2012/06/10/why-is-upsert-so-complicated/)
 so some compromises must be made.
 
-#### The Values
+#### The return values
 
-Just like 'Read', 'Write' produces a template with values to be fed into
-'pg/Postgres'. The above template would be accompanied by the values as
-output to the 'OUT' port:
-
-    BEGINGROUP: 'users_id_1'
-    DATA: '1'
-    ENDGROUP: 'users_id_1'
-    BEGINGROUP: 'users_name_1'
-    DATA: 'elephant'
-    ENDGROUP: 'users_name_1'
-    BEGINGROUP: 'things_id_1'
-    DATA: '3'
-    ENDGROUP: 'things_id_1'
-    BEGINGROUP: 'things_type_1'
-    DATA: 'person'
-    ENDGROUP: 'things_type_1'
-
-And just like 'Read', 'Write' assumes the primary key to be 'id'. Pass
-another primary key to the 'PKEY' port of 'Write' to change it.
+'Write' returns whatever the server returns wrapped in the provided
+token. Most likely nothing would be returned because it's a write
+operation. In this case (most cases), it'd be an empty connection with
+just the token as a wrapping group.
 
 
-Direct Execution API
-------------------------------
+### Automatic table/column existence check
 
-If you don't need to manage the `pg/Postgres` yourself, it is encouraged
-to use the high level API. The API works basically the same as using
-'Read' and 'Write' directly, except that queries are sent via the
-'READIN', 'READOUT', 'WRITEIN', and 'WRITEOUT' ports.
+The 'Write' component also automatically filter incoming queries for
+invalid tables and columns. This is possible as 'Write' fetches
+table/column information from the server on initialization. The
+downside, of course, is when the schema has changed on the PostgreSQL
+server the NoFlo network needs to be refreshed.
 
-Example:
+Another note when using 'Write' is to remember to pipe the 'READY' port
+to your initialization process that activates anything that would run a
+query against 'Write'. The component emits an empty connection to the
+'READY' port when it has finished fetching table/column information.
 
-    'tcp://localhost:5432/postgres' -> SERVER Database(pgorm/Database)
-    '2' -> THRESHOLD Merge(flow/CountedMerge)
-    'token' -> GROUP Token(Group)
-
-    'users' -> GROUP TableA(Group)
-    '{ "id": "x", "a": 1, "b": 2 }' -> IN ParseA(ParseJson) OUT -> IN TableA()
-
-    'things' -> GROUP TableB(Group)
-    '{ "id": "y", "c": 3 }' -> IN ParseB(ParseJson) OUT -> IN TableB()
-
-    TableA() OUT -> IN Merge()
-    TableB() OUT -> IN Merge()
-
-    Merge() OUT -> IN Token() OUT -> WRITEIN Database()
-    Database() WRITEOUT -> IN Output(Output)
-
-Of course, if your query is already well-formed, it simply looks like:
-
-    'tcp://localhost:5432/postgres' -> SERVER Database(pgorm/Database)
-    <<YOUR QUERIES HERE>> -> WRITEIN Database()
-    Database() WRITEOUT -> IN Output(Output)
-
-Use 'READIN' and 'READOUT' ports as specified above specified in the
-"Reading from Database" section.
+    'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
+    Write() READY -> ...
 
 
-### Automatic Table/Column Existence Check
+### Different primary key
 
-'pgorm/Database' also automatically filter incoming queries for invalid
-tables and columns. This is possible as 'Database' fetches table/column
-information from the server on initialization. The downside, of course,
-is when the schema has changed on the PostgreSQL server the NoFlo
-network needs to be refreshed.
+This ORM is a simple wrapper around noflo-pg so it assumes many things,
+including that all tables have the same primary key. By default, this is
+'id'. If the tables use a primary key that is not 'id', send the
+proper primary key to the 'PKEY' port. This only needs to be done once at
+initialization.
+
+    'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
+    'uuid' -> PKEY Write()
+
+
+### Error handling
+
+Errors from the PostgreSQL server are emitted to the 'ERROR' port.
+Attach a process to it to handle any server-side error.
+
+    'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
+    Write() ERROR -> IN Error(Output)
+
+
+### Shutting down
+
+You may shut down the connection to the PostgreSQL server by sending a
+null packet to the 'QUIT' port.
+
+    'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
+    '_' -> IN Kick(Kick) OUT -> QUIT Write()
+
+All connections in a single program are pooled for efficiency. Sending a
+null packet would kill all pgSQL connections. Pass the URL that was used
+to initialize the connection to 'QUIT' in order to kill just that one
+connection.

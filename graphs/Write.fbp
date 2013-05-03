@@ -1,9 +1,35 @@
-EXPORT=FILTERID.IN:IN
-EXPORT=CONSTRUCT.TEMPLATE:TEMPLATE
-EXPORT=CONSTRUCT.OUT:OUT
+EXPORT=URL.IN:SERVER
+EXPORT=ERROR.OUT:ERROR
+EXPORT=FILTERTOKEN.IN:IN
 EXPORT=CONSTRUCT.PKEY:PKEY
-EXPORT=SANITIZE.DEFINITION:DEFINITION
-EXPORT=FILTERID.GROUP:TOKEN
+EXPORT=READY.OUT:READY
+EXPORT=WRITESERVER.OUT:OUT
+EXPORT=WRITESERVER.QUIT:QUIT
 
-'.+' -> REGEXP FilterId(groups/FilterByGroup)
-FilterId() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite)
+'.+' -> REGEXP FilterToken(groups/FilterByGroup)
+FilterToken() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite)
+Url(Split) OUT -> SERVER WriteServer(pg/Postgres) ERROR -> IN Error(Merge)
+
+FilterToken() GROUP -> TOKEN WriteServer()
+Construct() TEMPLATE -> TEMPLATE WriteServer()
+Construct() OUT -> IN WriteServer()
+
+# Setup automatic filtering
+
+Url() OUT -> SERVER ConfigServer(pg/Postgres) ERROR -> IN Error()
+
+'columns' -> STRING ColumnsToken(SendString)
+'SELECT information_schema.columns.table_name, information_schema.columns.column_name FROM information_schema.columns, information_schema.tables WHERE information_schema.tables.table_schema = 'public' AND information_schema.columns.table_name = information_schema.tables.table_name;' -> STRING ReadColumns(SendString)
+'_' -> STRING ColumnsActivator(SendString)
+
+Url() OUT -> IN ColumnsToken() OUT -> TOKEN ConfigServer()
+Url() OUT -> IN ReadColumns() OUT -> TEMPLATE ConfigServer()
+Url() OUT -> IN ColumnsActivator() OUT -> IN ConfigServer()
+
+'columns' -> REGEXP FilterColumns(groups/FilterByGroup)
+'table_name' -> GROUPING GroupColumnsByTable(objects/GroupValueByAnother)
+'column_name' -> ENCLOSED GroupColumnsByTable()
+ConfigServer() OUT -> IN FilterColumns() OUT -> IN GroupColumnsByTable() OUT -> IN Definitions(Split)
+
+Definitions() OUT -> DEFINITION Sanitize()
+Definitions() OUT -> IN ReadyKick(Kick) OUT -> IN Ready(Split)
