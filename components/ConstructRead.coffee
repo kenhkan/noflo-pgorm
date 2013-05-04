@@ -40,11 +40,13 @@ class ConstructRead extends noflo.Component
 
       @outPorts.out.connect()
       @outPorts.out.send null if _.isEmpty @constraints
+
       for constraint in @constraints
-        [column, operator, value] = constraint
+        [column, operator, value...] = constraint
         @outPorts.out.beginGroup column
         @outPorts.out.send value
         @outPorts.out.endGroup()
+
       @outPorts.out.disconnect()
 
   constructTemplate: ->
@@ -55,8 +57,8 @@ class ConstructRead extends noflo.Component
 
     constStrings = []
     for constraint in @constraints
-      [column, operator, value] = constraint
-      constStrings.push "#{column} #{operator} &#{column}"
+      [column, operator, value...] = constraint
+      constStrings.push "#{column} #{operator.toUpperCase()} &#{column}"
 
     if constStrings.length > 0
       secondClause = " WHERE #{constStrings.join(" AND ")}"

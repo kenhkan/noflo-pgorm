@@ -87,6 +87,25 @@ while `Rows()` should receive something similar to:
       }
     ENDGROUP: 'token'
 
+#### Value list
+
+The tuple may also exceeds 3 elements, in which case the rest of the
+passed packets are also values, as in `[column_name, operator,
+value1, value2, value3]`. All the values are then compressed into an
+array and the resulting SQL would be an parenthesized list as specified
+in SQL syntax.
+
+    BEGINGROUP: 'token'
+    BEGINGROUP: 'users'
+    DATA: 'username,in,elephant,dog,cat'
+    ENDGROUP: 'users'
+    ENDGROUP: 'token'
+
+would be turned into:
+
+    SELECT users.* FROM users WHERE username IN ('elephant', 'dog',
+    'cat');
+
 
 ### Writing to PostgreSQL
 
