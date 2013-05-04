@@ -32,4 +32,4 @@ Url() OUT -> IN ColumnsActivator() OUT -> IN ConfigServer()
 ConfigServer() OUT -> IN FilterColumns() OUT -> IN GroupColumnsByTable() OUT -> IN Definitions(Split)
 
 Definitions() OUT -> DEFINITION Sanitize()
-Definitions() OUT -> IN ReadyKick(Kick) OUT -> IN Ready(Split)
+Definitions() OUT -> IN Ready(Kick)
