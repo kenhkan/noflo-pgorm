@@ -44,7 +44,7 @@ class ConstructRead extends noflo.Component
       for constraint in @constraints
         [column, operator, value...] = constraint
         @outPorts.out.beginGroup column
-        @outPorts.out.send value
+        @outPorts.out.send v for v in value
         @outPorts.out.endGroup()
 
       @outPorts.out.disconnect()
