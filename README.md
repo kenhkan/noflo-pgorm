@@ -87,6 +87,16 @@ while `Rows()` should receive something similar to:
       }
     ENDGROUP: 'token'
 
+#### Options
+
+You may specify the certain options when reading. The available options
+are, as in-ports:
+
+  1. LIMIT: directly placed as `LIMIT { number | ALL }`
+  2. OFFSET: directly placed as `OFFSET number`
+  3. ORDERBY: directly placed as
+     `ORDER BY column1 [ASC | DESC] [, column2 [ASC | DESC] ...]`
+
 #### Value list
 
 The tuple may also exceeds 3 elements, in which case the rest of the
@@ -188,16 +198,22 @@ query against 'Write'. The component emits an empty connection to the
     Write() READY -> ...
 
 
-### Different primary key
+### Different key
 
-This ORM is a simple wrapper around noflo-pg so it assumes many things,
-including that all tables have the same primary key. By default, this is
-'id'. If the tables use a primary key that is not 'id', send the
-proper primary key to the 'PKEY' port. This only needs to be done once at
-initialization.
+The ORM puts a `DISTINCT ON` on the "primary" key to ensure uniqueness
+even though the primary key itself should of course be declared unique
+when schema is set up. This "primary" key is defaulted to 'id'. You may
+configure the key by sending a new key to to the 'KEY' port. This only
+needs to be done once at initialization.
+
+This key is also used to order the rows with the `ORDER BY` clause. You
+may change the order-by key to something else by sending `*key* ASC` to
+the 'ORDERBY' port or change just the ordering by sending `DESC` to the
+'ORDERBY' port.
 
     'tcp://default@localhost:5432/postgres' -> SERVER Write(pgorm/Write)
-    'uuid' -> PKEY Write()
+    'uuid' -> KEY Write()
+    'name DESC' -> ORDERBY Write()
 
 
 ### Error handling

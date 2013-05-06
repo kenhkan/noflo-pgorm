@@ -11,16 +11,26 @@ class ConstructRead extends noflo.Component
     @pkey = "id"
     @tables = []
     @constraints = []
+    @offset = 0
+    @limit = 50
+    @orderBy = "id ASC"
 
     @inPorts =
       in: new noflo.Port
       table: new noflo.Port
       pkey: new noflo.Port
+      limit: new noflo.Port
+      offset: new noflo.Port
+      orderby: new noflo.Port
     @outPorts =
       template: new noflo.Port
       out: new noflo.Port
 
+    @inPorts.limit.on "data", (@limit) =>
+    @inPorts.offset.on "data", (@offset) =>
+    @inPorts.orderby.on "data", (@orderBy) =>
     @inPorts.pkey.on "data", (@pkey) =>
+      @orderBy = "#{@pkey} ASC" if @orderBy is "id ASC"
 
     @inPorts.table.on "connect", =>
       @tables = []
@@ -43,6 +53,8 @@ class ConstructRead extends noflo.Component
 
       for constraint in @constraints
         [column, operator, value...] = constraint
+        # Pad values for list just in case of list of one
+        value.push "" if operator.toUpperCase() is "IN"
         @outPorts.out.beginGroup column
         @outPorts.out.send v for v in value
         @outPorts.out.endGroup()
@@ -52,8 +64,10 @@ class ConstructRead extends noflo.Component
   constructTemplate: ->
     primary = _.first @tables
     tables = @tables.join ", "
-    firstClause = "SELECT DISTINCT ON (#{@pkey}) #{primary}.* FROM #{tables}"
-    secondClause = ""
+    baseClause = "SELECT DISTINCT ON (#{@pkey}) #{primary}.* FROM #{tables}"
+    constraintClause = ""
+    optionsClause = " ORDER BY #{@pkey}, #{@orderBy}"
+    optionsClause += " LIMIT #{@limit} OFFSET #{@offset}"
 
     constStrings = []
     for constraint in @constraints
@@ -61,8 +75,8 @@ class ConstructRead extends noflo.Component
       constStrings.push "#{column} #{operator.toUpperCase()} &#{column}"
 
     if constStrings.length > 0
-      secondClause = " WHERE #{constStrings.join(" AND ")}"
+      constraintClause = " WHERE #{constStrings.join(" AND ")}"
 
-    "#{firstClause}#{secondClause};"
+    "#{baseClause}#{constraintClause}#{optionsClause};"
 
 exports.getComponent = -> new ConstructRead
