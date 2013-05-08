@@ -14,6 +14,7 @@ class ConstructRead extends noflo.Component
     @offset = 0
     @limit = 50
     @orderBy = "id ASC"
+    @includeType = false
 
     @inPorts =
       in: new noflo.Port
@@ -22,15 +23,18 @@ class ConstructRead extends noflo.Component
       limit: new noflo.Port
       offset: new noflo.Port
       orderby: new noflo.Port
+      includetype: new noflo.Port
     @outPorts =
       template: new noflo.Port
       out: new noflo.Port
 
+    @inPorts.pkey.on "data", (@pkey) =>
+      @orderBy = "#{@pkey} ASC" if @orderBy is "id ASC"
     @inPorts.limit.on "data", (@limit) =>
     @inPorts.offset.on "data", (@offset) =>
     @inPorts.orderby.on "data", (@orderBy) =>
-    @inPorts.pkey.on "data", (@pkey) =>
-      @orderBy = "#{@pkey} ASC" if @orderBy is "id ASC"
+    @inPorts.includetype.on "data", (includetype) =>
+      @includeType = true if includetype is "true"
 
     @inPorts.table.on "connect", =>
       @tables = []
@@ -38,7 +42,7 @@ class ConstructRead extends noflo.Component
     @inPorts.table.on "data", (table) =>
       @tables.push table if _.isString table
 
-    @inPorts.in.on "connect", (group) =>
+    @inPorts.in.on "connect", =>
       @constraints = []
 
     @inPorts.in.on "data", (data) =>
@@ -64,7 +68,9 @@ class ConstructRead extends noflo.Component
   constructTemplate: ->
     primary = _.first @tables
     tables = @tables.join ", "
-    baseClause = "SELECT DISTINCT ON (#{@pkey}) #{primary}.* FROM #{tables}"
+    typeSegment = if @includeType then ", '#{primary}' AS type" else ""
+    fields = "#{primary}.*#{typeSegment}"
+    baseClause = "SELECT DISTINCT ON (#{@pkey}) #{fields} FROM #{tables}"
     constraintClause = ""
     optionsClause = " ORDER BY #{@pkey}, #{@orderBy}"
     optionsClause += " LIMIT #{@limit} OFFSET #{@offset}"

@@ -52,4 +52,16 @@ test.component("pgorm/ConstructRead").
     receive.data("template", "SELECT DISTINCT ON (id) users.* FROM users ORDER BY id, name DESC LIMIT 30 OFFSET 5;").
     receive.data("out", null).
 
+  next().
+  discuss("include the table's name in output").
+    send.data("includetype", "true").
+  discuss("send in some tables").
+    send.data("table", "users").
+  discuss("with no constraints").
+    send.connect("in").
+    send.disconnect("in").
+  discuss("construct the SQL with the table's name as a column").
+    receive.data("template", "SELECT DISTINCT ON (id) users.*, 'users' AS type FROM users ORDER BY id, id ASC LIMIT 50 OFFSET 0;").
+    receive.data("out", null).
+
 export module
