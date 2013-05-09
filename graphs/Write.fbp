@@ -3,7 +3,7 @@ EXPORT=ERROR.OUT:ERROR
 EXPORT=FILTERTOKEN.IN:IN
 EXPORT=CONSTRUCT.PKEY:PKEY
 EXPORT=READY.OUT:READY
-EXPORT=WRITESERVER.OUT:OUT
+EXPORT=TOPACKETS.OUT:OUT
 EXPORT=WRITESERVER.QUIT:QUIT
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
@@ -13,6 +13,14 @@ Url(Split) OUT -> SERVER WriteServer(pg/Postgres) ERROR -> IN Error(Merge)
 FilterToken() GROUP -> TOKEN WriteServer()
 Construct() TEMPLATE -> TEMPLATE WriteServer()
 Construct() OUT -> IN WriteServer()
+
+# Convert to NoFlo packets
+
+'out' -> KEY ExtractRow(objects/ExtractProperty)
+'_type' -> PROPERTY GroupByType(underscore/GroupBy)
+WriteServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN ToPackets(adapters/ObjectToPackets)
+
+# Convert output into native JavaScript objects
 
 # Setup automatic filtering
 

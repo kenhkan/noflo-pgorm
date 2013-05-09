@@ -18,7 +18,7 @@ Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
 
 
-API
+Usage
 ------------------------------
 
 ### Reading from PostgreSQL
@@ -80,11 +80,13 @@ The executed SQL should be something like:
 while `Rows()` should receive something similar to:
 
     BEGINGROUP: 'token'
+    BEGINGROUP: 'users'
     DATA: {
         ...
         username: 'elephant'
         ...
       }
+    ENDGROUP: 'users'
     ENDGROUP: 'token'
 
 #### Options
@@ -175,10 +177,26 @@ so some compromises must be made.
 
 #### The return values
 
-'Write' returns whatever the server returns wrapped in the provided
-token. Most likely nothing would be returned because it's a write
-operation. In this case (most cases), it'd be an empty connection with
-just the token as a wrapping group.
+'Write' returns all the records *after* they have been updated (or not)
+by the database server. The format is exactly like what `Read` returns.
+For instance:
+
+    BEGINGROUP: 'token'
+    BEGINGROUP: 'users'
+    DATA: {
+        ...
+        name: 'elephant'
+        ...
+      }
+    ENDGROUP: 'users'
+    BEGINGROUP: 'things'
+    DATA: {
+        ...
+        type: 'person'
+        ...
+      }
+    ENDGROUP: 'things'
+    ENDGROUP: 'token'
 
 
 ### Automatic table/column existence check

@@ -16,6 +16,16 @@ expected = _s.clean """
     INSERT INTO things (id, type)
       SELECT &things_id_4321, &things_type_4321
       WHERE NOT EXISTS (SELECT 1 FROM things WHERE id = &things_id_4321);
+
+    SELECT row_to_json(rows) AS out FROM (
+      (SELECT rows FROM
+        (SELECT *, 'users' AS _type FROM users
+          WHERE id IN (&users_id_1234)) AS rows)
+      UNION
+      (SELECT rows FROM
+        (SELECT *, 'things' AS _type FROM things
+          WHERE id IN (&things_id_4321)) AS rows)
+    ) AS rows;
   END;
 """
 

@@ -61,6 +61,7 @@ class ConstructWrite extends noflo.Component
 
   constructTemplate: ->
     templates = []
+    returnTemplates = []
 
     for table, objects of @objects
       for object in objects
@@ -86,11 +87,26 @@ class ConstructWrite extends noflo.Component
             (SELECT 1 FROM #{table} WHERE #{idTemplate});
         """
 
+      # Add returning SELECT clause for each table
+      placeholders = _.map objects, (object) =>
+        @constructPlaceholder table, @pkey, object[@pkey]
+
+      returnTemplates.push """
+        (SELECT rows FROM
+          (SELECT *, '#{table}' AS _type FROM #{table}
+            WHERE id IN (#{placeholders.join(", ")}))
+          AS rows)
+      """
+
     _s.clean """
       BEGIN;
         SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
         #{templates.join("\n")}
+
+        SELECT row_to_json(rows) AS out FROM (
+          #{returnTemplates.join(" UNION ")}
+        ) AS rows;
       END;
     """
 
