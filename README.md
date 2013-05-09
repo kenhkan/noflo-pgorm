@@ -21,6 +21,49 @@ incorporate as soon as time allows.
 Usage
 ------------------------------
 
+There are two operatioins when it comes to interacting with the ORM:
+'Read' and 'Write'. Both expect the same format when it comes to what is
+given and what is output. For the output, the following format is used:
+
+    BEGINGROUP: session-token
+    BEGINGROUP: type-name
+    DATA: record-as-JavaScript-object
+    ... (more records)
+    ENDGROUP: 'users'
+    ... (more records by type)
+    ENDGROUP: 'token'
+
+`type` is synonymous as a table. An example:
+
+    BEGINGROUP: 'token'
+    BEGINGROUP: 'users'
+    DATA: { id: 1 }
+    DATA: { id: 2 }
+    ENDGROUP: 'users'
+    BEGINGROUP: 'things'
+    DATA: { id: 3 }
+    DATA: { id: 4 }
+    DATA: { id: 5 }
+    ENDGROUP: 'things'
+    ENDGROUP: 'token'
+
+The input, or what the ORM expects to take, follows this format:
+
+    BEGINGROUP: session-token
+    BEGINGROUP: type-name
+    BEGINGROUP: additional-type-name
+    ... (more additional types)
+    DATA: constraint-or-record-as-JavaScript-object
+    ... (more records)
+    ENDGROUP: 'users'
+    ... (more records by type)
+    ENDGROUP: 'token'
+
+It is similar to how the output is formatted except that it differs a
+bit between 'Read' and 'Write'. Keep on reading for the different input
+format.
+
+
 ### Reading from PostgreSQL
 
 Reading is as simple as sending the target table name and constraints to

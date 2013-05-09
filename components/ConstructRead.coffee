@@ -9,21 +9,16 @@ class ConstructRead extends noflo.Component
 
   constructor: ->
     @pkey = "id"
-    @tables = []
-    @constraints = []
     @offset = 0
     @limit = 50
     @orderBy = "id ASC"
-    @includeType = false
 
     @inPorts =
       in: new noflo.Port
-      table: new noflo.Port
       pkey: new noflo.Port
       limit: new noflo.Port
       offset: new noflo.Port
       orderby: new noflo.Port
-      includetype: new noflo.Port
     @outPorts =
       template: new noflo.Port
       out: new noflo.Port
@@ -33,56 +28,89 @@ class ConstructRead extends noflo.Component
     @inPorts.limit.on "data", (@limit) =>
     @inPorts.offset.on "data", (@offset) =>
     @inPorts.orderby.on "data", (@orderBy) =>
-    @inPorts.includetype.on "data", (includetype) =>
-      @includeType = true if includetype is "true"
-
-    @inPorts.table.on "connect", =>
-      @tables = []
-
-    @inPorts.table.on "data", (table) =>
-      @tables.push table if _.isString table
 
     @inPorts.in.on "connect", =>
+      @count = 0
+      @tables = []
       @constraints = []
+      @groups = []
 
-    @inPorts.in.on "data", (data) =>
-      @constraints.push data if _.isArray data
+    @inPorts.in.on "begingroup", (table) =>
+      @groups.push table
+      tables = @tables[@count] ?= []
+      tables.push table
+ 
+    @inPorts.in.on "data", (constraint) =>
+      constraints = @constraints[@count] ?= []
+      constraints.push constraint if _.isArray constraint
+
+    @inPorts.in.on "endgroup", (table) =>
+      @groups.pop()
+      @count++ if _.isEmpty @groups
 
     @inPorts.in.on "disconnect", =>
-      @outPorts.template.send @constructTemplate()
+      templates = []
+      values = []
+
+      for i in [0...@count]
+        tables = @tables[i]
+        constraints = @constraints[i]
+
+        templates.push @constructTemplate tables, constraints
+        values.push @constructValues tables, constraints
+
+      @outPorts.template.send _s.clean """
+        SELECT row_to_json(rows) AS out FROM (
+          #{templates.join(" UNION ")}
+        ) AS rows;
+      """
       @outPorts.template.disconnect()
 
-      @outPorts.out.connect()
-      @outPorts.out.send null if _.isEmpty @constraints
-
-      for constraint in @constraints
-        [column, operator, value...] = constraint
-        # Pad values for list just in case of list of one
-        value.push "" if operator.toUpperCase() is "IN"
-        @outPorts.out.beginGroup column
-        @outPorts.out.send v for v in value
-        @outPorts.out.endGroup()
-
+      if _.all values, _.isEmpty
+        @outPorts.out.send null
+      else
+        for value in values
+          for column, vs of value
+            @outPorts.out.beginGroup column
+            @outPorts.out.send v for v in vs
+            @outPorts.out.endGroup()
       @outPorts.out.disconnect()
 
-  constructTemplate: ->
-    primary = _.first @tables
-    tables = @tables.join ", "
-    typeSegment = if @includeType then ", '#{primary}' AS type" else ""
-    fields = "#{primary}.*#{typeSegment}"
+  constructPlaceholder: (table, key, id = "", prefix = "&") ->
+    "#{prefix}#{table}_#{key}_#{id}"
+
+  constructTemplate: (tables, constraints) ->
+    primary = _.first tables
+    tables = tables.join ", "
+    fields = "#{primary}.*, '#{primary}' AS _type"
     baseClause = "SELECT DISTINCT ON (#{@pkey}) #{fields} FROM #{tables}"
     constraintClause = ""
     optionsClause = " ORDER BY #{@pkey}, #{@orderBy}"
     optionsClause += " LIMIT #{@limit} OFFSET #{@offset}"
 
     constStrings = []
-    for constraint in @constraints
+    for constraint in constraints
       [column, operator, value...] = constraint
-      constStrings.push "#{column} #{operator.toUpperCase()} &#{column}"
+      placeholder = @constructPlaceholder primary, column
+      constStrings.push "#{column} #{operator.toUpperCase()} #{placeholder}"
 
     if constStrings.length > 0
       constraintClause = " WHERE #{constStrings.join(" AND ")}"
 
-    "#{baseClause}#{constraintClause}#{optionsClause};"
+    template = "#{baseClause}#{constraintClause}#{optionsClause}"
+    "(SELECT rows FROM (#{template}) AS rows)"
+
+  constructValues: (tables, constraints) ->
+    primary = _.first tables
+    values = {}
+
+    for constraint in constraints
+      [column, operator, value...] = constraint
+      placeholder = @constructPlaceholder primary, column
+      # Pad values for list just in case of list of one
+      value.push null if operator.toUpperCase() is "IN"
+      values[placeholder] = value
+
+    values
 
 exports.getComponent = -> new ConstructRead

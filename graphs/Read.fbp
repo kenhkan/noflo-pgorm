@@ -1,5 +1,5 @@
 EXPORT=FILTERTOKEN.IN:IN
-EXPORT=READSERVER.OUT:OUT
+EXPORT=TOPACKETS.OUT:OUT
 EXPORT=READSERVER.SERVER:SERVER
 EXPORT=CONSTRUCT.PKEY:PKEY
 EXPORT=READSERVER.ERROR:ERROR
@@ -7,14 +7,16 @@ EXPORT=READSERVER.QUIT:QUIT
 EXPORT=CONSTRUCT.LIMIT:LIMIT
 EXPORT=CONSTRUCT.OFFSET:OFFSET
 EXPORT=CONSTRUCT.ORDERBY:ORDERBY
-EXPORT=CONSTRUCT.INCLUDETYPE:INCLUDETYPE
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
-FilterToken() OUT -> IN Split(Split)
-
-Split() OUT -> IN ReadTables(groups/ReadGroups) OUT -> TABLE Construct(pgorm/ConstructRead)
-Split() OUT -> IN RemoveTables(groups/RemoveGroups) OUT -> IN Construct()
+FilterToken() OUT -> IN Construct(pgorm/ConstructRead)
 
 FilterToken() GROUP -> TOKEN ReadServer(pg/Postgres)
 Construct() TEMPLATE -> TEMPLATE ReadServer()
 Construct() OUT -> IN ReadServer()
+
+# Convert to NoFlo packets
+
+'out' -> KEY ExtractRow(objects/ExtractProperty)
+'_type' -> PROPERTY GroupByType(underscore/GroupBy)
+ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN ToPackets(adapters/ObjectToPackets)

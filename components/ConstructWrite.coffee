@@ -56,7 +56,7 @@ class ConstructWrite extends noflo.Component
           delete object[key] unless value?
       @objects[table] = _.reject objects, _.isEmpty
 
-  constructPlaceholder: (table, key, id, prefix = "&") ->
+  constructPlaceholder: (table, key, id = "", prefix = "&") ->
     "#{prefix}#{table}_#{key}_#{id}"
 
   constructTemplate: ->
