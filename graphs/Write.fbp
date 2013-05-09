@@ -20,8 +20,6 @@ Construct() OUT -> IN WriteServer()
 '_type' -> PROPERTY GroupByType(underscore/GroupBy)
 WriteServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN ToPackets(adapters/ObjectToPackets)
 
-# Convert output into native JavaScript objects
-
 # Setup automatic filtering
 
 Url() OUT -> SERVER ConfigServer(pg/Postgres) ERROR -> IN Error()

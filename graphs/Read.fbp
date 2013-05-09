@@ -7,8 +7,11 @@ EXPORT=READSERVER.QUIT:QUIT
 EXPORT=CONSTRUCT.LIMIT:LIMIT
 EXPORT=CONSTRUCT.OFFSET:OFFSET
 EXPORT=CONSTRUCT.ORDERBY:ORDERBY
+EXPORT=SENDFILTER.IN:FILTER
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
+'true' -> RECURSE FilterAttributes(objects/FilterProperty)
+'_type' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
 FilterToken() OUT -> IN Construct(pgorm/ConstructRead)
 
 FilterToken() GROUP -> TOKEN ReadServer(pg/Postgres)
@@ -19,4 +22,4 @@ Construct() OUT -> IN ReadServer()
 
 'out' -> KEY ExtractRow(objects/ExtractProperty)
 '_type' -> PROPERTY GroupByType(underscore/GroupBy)
-ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN ToPackets(adapters/ObjectToPackets)
+ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN ToPackets(adapters/ObjectToPackets)
