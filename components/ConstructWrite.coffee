@@ -34,10 +34,10 @@ class ConstructWrite extends noflo.Component
       @table = null
 
     @inPorts.in.on "disconnect", =>
+      @clean()
+
       @outPorts.template.send @constructTemplate()
-
       @outPorts.out.connect()
-
       for table, objects of @objects
         for object in objects
           id = object[@pkey]
@@ -46,9 +46,15 @@ class ConstructWrite extends noflo.Component
             @outPorts.out.beginGroup @constructPlaceholder table, key, id, ""
             @outPorts.out.send value
             @outPorts.out.endGroup()
-
       @outPorts.out.disconnect()
       @outPorts.template.disconnect()
+
+  clean: ->
+    for table, objects of @objects
+      for object in objects
+        for key, value of object
+          delete object[key] unless value?
+      @objects[table] = _.reject objects, _.isEmpty
 
   constructPlaceholder: (table, key, id, prefix = "&") ->
     "#{prefix}#{table}_#{key}_#{id}"

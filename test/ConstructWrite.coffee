@@ -23,10 +23,10 @@ test.component("pgorm/ConstructWrite").
   discuss("send in some objects grouped in table names").
     send.connect("in").
     send.beginGroup("in", "users").
-    send.data("in", { id: "1234", name: "panda" }).
+    send.data("in", { id: "1234", name: "panda", blah: null }).
     send.endGroup("in", "users").
     send.beginGroup("in", "things").
-    send.data("in", { id: "4321", type: "mammal" }).
+    send.data("in", { id: "4321", type: "mammal", bleh: undefined }).
     send.endGroup("in", "things").
     send.disconnect("in").
   discuss("construct the SQL").
