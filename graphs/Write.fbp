@@ -3,10 +3,13 @@ EXPORT=ERROR.OUT:ERROR
 EXPORT=FILTERTOKEN.IN:IN
 EXPORT=CONSTRUCT.PKEY:PKEY
 EXPORT=READY.OUT:READY
-EXPORT=TOPACKETS.OUT:OUT
+EXPORT=PACKETIZE.OUT:OUT
 EXPORT=WRITESERVER.QUIT:QUIT
+EXPORT=SENDFILTER.IN:FILTER
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
+'true' -> RECURSE FilterAttributes(objects/FilterProperty)
+'^_.+' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
 FilterToken() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite)
 Url(Split) OUT -> SERVER WriteServer(pg/Postgres) ERROR -> IN Error(Merge)
 
@@ -18,7 +21,7 @@ Construct() OUT -> IN WriteServer()
 
 'out' -> KEY ExtractRow(objects/ExtractProperty)
 '_type' -> PROPERTY GroupByType(underscore/GroupBy)
-WriteServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN ToPackets(adapters/ObjectToPackets)
+WriteServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN Packetize(adapters/ObjectToPackets)
 
 # Setup automatic filtering
 
@@ -26,7 +29,7 @@ Url() OUT -> SERVER ConfigServer(pg/Postgres) ERROR -> IN Error()
 
 'columns' -> STRING ColumnsToken(SendString)
 'SELECT information_schema.columns.table_name, information_schema.columns.column_name FROM information_schema.columns, information_schema.tables WHERE information_schema.tables.table_schema = 'public' AND information_schema.columns.table_name = information_schema.tables.table_name;' -> STRING ReadColumns(SendString)
-'_' -> STRING ColumnsActivator(SendString)
+' ' -> STRING ColumnsActivator(SendString)
 
 Url() OUT -> IN ColumnsToken() OUT -> TOKEN ConfigServer()
 Url() OUT -> IN ReadColumns() OUT -> TEMPLATE ConfigServer()

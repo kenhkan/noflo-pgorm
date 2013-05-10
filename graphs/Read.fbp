@@ -1,5 +1,5 @@
 EXPORT=FILTERTOKEN.IN:IN
-EXPORT=TOPACKETS.OUT:OUT
+EXPORT=PACKETIZE.OUT:OUT
 EXPORT=READSERVER.SERVER:SERVER
 EXPORT=CONSTRUCT.PKEY:PKEY
 EXPORT=READSERVER.ERROR:ERROR
@@ -11,7 +11,7 @@ EXPORT=SENDFILTER.IN:FILTER
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
 'true' -> RECURSE FilterAttributes(objects/FilterProperty)
-'_type' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
+'^_.+' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
 FilterToken() OUT -> IN Construct(pgorm/ConstructRead)
 
 FilterToken() GROUP -> TOKEN ReadServer(pg/Postgres)
@@ -22,4 +22,4 @@ Construct() OUT -> IN ReadServer()
 
 'out' -> KEY ExtractRow(objects/ExtractProperty)
 '_type' -> PROPERTY GroupByType(underscore/GroupBy)
-ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN ToPackets(adapters/ObjectToPackets)
+ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN Packetize(adapters/ObjectToPackets)

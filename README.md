@@ -64,7 +64,7 @@ bit between 'Read' and 'Write'. Keep on reading for the different input
 format.
 
 
-### Reading from PostgreSQL
+### Reading from PostgreSQL ###
 
 Reading is as simple as sending the target table name and constraints to
 the 'Read' component.
@@ -162,7 +162,7 @@ would be turned into:
     'cat');
 
 
-### Writing to PostgreSQL
+### Writing to PostgreSQL ###
 
 Writing is handled by the 'Write' component, very similar to the 'Read'
 component except it fetches table and column information from the
@@ -242,7 +242,25 @@ For instance:
     ENDGROUP: 'token'
 
 
-### Automatic table/column existence check
+### Output Filtering ###
+
+Because the ORM outputs records as an array of records grouped by types
+(i.e. tables), it inserts a `_type` attribute to each record. If you
+would like to remove it, pass an empty string to the 'FILTER' port and
+all attributes starting with an underscore (i.e. `_`) will be removed
+for all records.
+
+You may also pass in additional filters. Each packet is a filter that is
+a RegExp string and filters based on the record's attribute key. For
+instance, the following filters everything starting with an 'a' and
+everything ending with a 'z':
+
+    '^a' -> FILTER Read(pgorm/Read)
+    'z$' -> FILTER Read()
+    ... -> IN Read() OUT -> ...
+
+
+### Automatic table/column existence check ###
 
 The 'Write' component also automatically filter incoming queries for
 invalid tables and columns. This is possible as 'Write' fetches
@@ -259,7 +277,7 @@ query against 'Write'. The component emits an empty connection to the
     Write() READY -> ...
 
 
-### Different key
+### Different key ###
 
 The ORM puts a `DISTINCT ON` on the "primary" key to ensure uniqueness
 even though the primary key itself should of course be declared unique
@@ -277,7 +295,7 @@ the 'ORDERBY' port or change just the ordering by sending `DESC` to the
     'name DESC' -> ORDERBY Write()
 
 
-### Error handling
+### Error handling ###
 
 Errors from the PostgreSQL server are emitted to the 'ERROR' port.
 Attach a process to it to handle any server-side error.
@@ -286,7 +304,7 @@ Attach a process to it to handle any server-side error.
     Write() ERROR -> IN Error(Output)
 
 
-### Shutting down
+### Shutting down ###
 
 You may shut down the connection to the PostgreSQL server by sending a
 null packet to the 'QUIT' port.
