@@ -5,11 +5,9 @@ EXPORT=CONSTRUCT.PKEY:PKEY
 EXPORT=READY.OUT:READY
 EXPORT=PACKETIZE.OUT:OUT
 EXPORT=WRITESERVER.QUIT:QUIT
-EXPORT=SENDFILTER.IN:FILTER
+EXPORT=PACKETIZE.FILTER:FILTER
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
-'true' -> RECURSE FilterAttributes(objects/FilterProperty)
-'^_.+' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
 FilterToken() OUT -> IN Sanitize(pgorm/SanitizeObjects) OUT -> IN Construct(pgorm/ConstructWrite)
 Url(Split) OUT -> SERVER WriteServer(pg/Postgres) ERROR -> IN Error(Merge)
 
@@ -19,9 +17,7 @@ Construct() OUT -> IN WriteServer()
 
 # Convert to NoFlo packets
 
-'out' -> KEY ExtractRow(objects/ExtractProperty)
-'_type' -> PROPERTY GroupByType(underscore/GroupBy)
-WriteServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN Packetize(adapters/ObjectToPackets)
+WriteServer() OUT -> IN Packetize(pgorm/JsonToPackets)
 
 # Setup automatic filtering
 

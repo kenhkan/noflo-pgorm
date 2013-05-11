@@ -7,11 +7,9 @@ EXPORT=READSERVER.QUIT:QUIT
 EXPORT=CONSTRUCT.LIMIT:LIMIT
 EXPORT=CONSTRUCT.OFFSET:OFFSET
 EXPORT=CONSTRUCT.ORDERBY:ORDERBY
-EXPORT=SENDFILTER.IN:FILTER
+EXPORT=PACKETIZE.FILTER:FILTER
 
 '.+' -> REGEXP FilterToken(groups/FilterByGroup)
-'true' -> RECURSE FilterAttributes(objects/FilterProperty)
-'^_.+' -> WITH SendFilter(packets/SendWith) OUT -> KEY FilterAttributes()
 FilterToken() OUT -> IN Construct(pgorm/ConstructRead)
 
 FilterToken() GROUP -> TOKEN ReadServer(pg/Postgres)
@@ -20,6 +18,4 @@ Construct() OUT -> IN ReadServer()
 
 # Convert to NoFlo packets
 
-'out' -> KEY ExtractRow(objects/ExtractProperty)
-'_type' -> PROPERTY GroupByType(underscore/GroupBy)
-ReadServer() OUT -> IN ExtractRow() OUT -> IN ParseRows(strings/ParseJson) OUT -> IN GroupByType() OUT -> IN FilterAttributes() OUT -> IN Packetize(adapters/ObjectToPackets)
+ReadServer() OUT -> IN Packetize(pgorm/JsonToPackets)
