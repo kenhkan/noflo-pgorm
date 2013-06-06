@@ -91,12 +91,13 @@ class ConstructWrite extends noflo.Component
       placeholders = _.map objects, (object) =>
         @constructPlaceholder table, @pkey, object[@pkey]
 
-      returnTemplates.push """
-        (SELECT rows FROM
-          (SELECT *, '#{table}' AS _type FROM #{table}
-            WHERE id IN (#{placeholders.join(", ")}))
-          AS rows)
-      """
+      if placeholders.length > 0
+        returnTemplates.push """
+          (SELECT rows FROM
+            (SELECT *, '#{table}' AS _type FROM #{table}
+              WHERE id IN (#{placeholders.join(", ")}))
+            AS rows)
+        """
 
     _s.clean """
       BEGIN;
