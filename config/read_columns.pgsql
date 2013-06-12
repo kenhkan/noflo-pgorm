@@ -1,0 +1,1 @@
+SELECT information_schema.columns.table_name, information_schema.columns.column_name FROM information_schema.columns, information_schema.tables WHERE information_schema.tables.table_schema = 'public' AND information_schema.columns.table_name = information_schema.tables.table_name;

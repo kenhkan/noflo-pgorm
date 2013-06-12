@@ -13,7 +13,7 @@
   , "orm"
   ]
 , "author": "Kenneth Kan <kenhkan@gmail.com>"
-, "version": "0.0.11"
+, "version": "0.0.12"
 , "licenses":
   [ { "type": "MIT"
     , "url": "https://github.com/kenhkan/noflo-pgorm/blob/master/LICENSE.md"
@@ -46,6 +46,7 @@
     { "ConstructRead": "./components/ConstructRead.coffee"
     , "ConstructWrite": "./components/ConstructWrite.coffee"
     , "SanitizeObjects": "./components/SanitizeObjects.coffee"
+    , "ResolvePath": "./components/ResolvePath.coffee"
     }
   , "graphs":
     { "Read": "./graphs/Read.fbp"
