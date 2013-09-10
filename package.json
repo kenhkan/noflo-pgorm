@@ -69,5 +69,8 @@
       "Write": "./graphs/Write.fbp",
       "JsonToPackets": "./graphs/JsonToPackets.fbp"
     }
+  },
+  "scripts": {
+    "test": "grunt test"
   }
 }
