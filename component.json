@@ -1,0 +1,22 @@
+{
+  "name": "-pgorm",
+  "description": "The best project ever.",
+  "author": "Kenneth Kan <kenhkan@gmail.com>",
+  "repo": "kenhkan/noflo-pgorm",
+  "version": "0.1.0",
+  "keywords": [
+  ],
+  "dependencies": {
+    "noflo/noflo": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "json": [
+    "component.json"
+  ],
+  "noflo": {
+    "components": {
+    }
+  }
+}

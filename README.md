@@ -1,5 +1,4 @@
-PostgreSQL ORM on top of noflo-pg [![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pgorm.png?branch=master)](https://travis-ci.org/kenhkan/noflo-pgorm)
-===============================
+# PostgreSQL ORM on top of noflo-pg <br/>[![Build Status](https://secure.travis-ci.org/kenhkan/noflo-pgorm.png?branch=master)](http://travis-ci.org/kenhkan/noflo-pgorm) [![Dependency Status](https://gemnasium.com/kenhkan/noflo-pgorm.png)](https://gemnasium.com/kenhkan/noflo-pgorm) [![NPM version](https://badge.fury.io/js/noflo-pgorm.png)](http://badge.fury.io/js/noflo-pgorm) [![Stories in Ready](https://badge.waffle.io/kenhkan/noflo-pgorm.png)](http://waffle.io/kenhkan/noflo-pgorm)
 
 This is an Object-Relational Mapping interface to
 [noflo-pg](https://github.com/kenhkan/noflo-pg). This ORM tries to be a
@@ -18,8 +17,7 @@ Feel free to contribute new components and graphs! I'll try to
 incorporate as soon as time allows.
 
 
-Usage
-------------------------------
+## Usage
 
 There are two operatioins when it comes to interacting with the ORM:
 'Read' and 'Write'. Both expect the same format when it comes to what is

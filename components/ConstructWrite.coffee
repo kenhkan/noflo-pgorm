@@ -80,11 +80,11 @@ class ConstructWrite extends noflo.Component
 
         templates.push """
           UPDATE #{table} SET #{setTemplate}
-            WHERE #{idTemplate};
+            WHERE #{idTemplate}; --
           INSERT INTO #{table} (#{keys.join(", ")})
             SELECT #{selectTemplate}
             WHERE NOT EXISTS
-            (SELECT 1 FROM #{table} WHERE #{idTemplate});
+            (SELECT 1 FROM #{table} WHERE #{idTemplate}); --
         """
 
       # Add returning SELECT clause for each table
@@ -101,13 +101,13 @@ class ConstructWrite extends noflo.Component
 
     _s.clean """
       BEGIN;
-        SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+        SET TRANSACTION ISOLATION LEVEL SERIALIZABLE; --
 
         #{templates.join("\n")}
 
         SELECT row_to_json(rows) AS out FROM (
           #{returnTemplates.join(" UNION ")}
-        ) AS rows;
+        ) AS rows; --
       END;
     """
 
