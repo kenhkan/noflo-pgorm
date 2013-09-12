@@ -29,7 +29,7 @@
     "url": "https://github.com/kenhkan/noflo-pgorm"
   },
   "dependencies": {
-    "noflo": "~0.4.0",
+    "noflo": "https://github.com/kenhkan/noflo/archive/0.4.0+add_all_detected_components.tar.gz",
     "underscore": "1.4.x",
     "underscore.string": "2.3.x",
     "noflo-pg": "~0.0.0",
@@ -41,8 +41,9 @@
     "noflo-test": "0.0.6",
     "noflo-strings": "~0.1.2",
     "noflo-core": "~0.1.1",
-    "noflo-filesystem": "https://github.com/kenhkan/noflo-filesystem/tarball/add_readfilesync",
-    "noflo-underscore": "0.0.4"
+    "noflo-filesystem": "https://github.com/kenhkan/noflo-filesystem/archive/1.0.2+add_readfilesync.tar.gz",
+    "noflo-underscore": "0.0.4",
+    "noflo-adapters": "~0.1.2"
   },
   "devDependencies": {
     "coffeelint": "*",
