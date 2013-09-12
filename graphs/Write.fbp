@@ -18,10 +18,6 @@ Construct() OUT -> IN WriteServer()
 
 WriteServer() OUT -> IN Packetize(pgorm/JsonToPackets)
 
-# Only continue if config is ready. Otherwise buffer until it is.
-
-'0' -> IN MergeReadiness(core/Merge) OUT -> ON Input(flow/TrafficLight) OUT -> IN FilterToken()
-
 # Setup automatic filtering
 
 Url() OUT -> SERVER ConfigServer(pg/Postgres) ERROR -> IN Error()
@@ -39,8 +35,5 @@ Url() OUT -> IN ColumnsActivator() OUT -> IN ConfigServer()
 'column_name' -> ENCLOSED GroupColumnsByTable()
 ConfigServer() OUT -> IN FilterColumns() OUT -> IN GroupColumnsByTable() OUT -> IN Definitions(core/Split)
 
-'1' -> STRING Ready(strings/SendString)
-
 Definitions() OUT -> DEFINITION Sanitize()
-Definitions() OUT -> IN Ready() OUT -> IN MergeReadiness()
-Definitions() OUT -> READY Input()
+Definitions() OUT -> READY Input(flow/BufferUntil) OUT -> IN FilterToken()
