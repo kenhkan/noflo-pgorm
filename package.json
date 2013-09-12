@@ -14,7 +14,7 @@
     "orm"
   ],
   "author": "Kenneth Kan <kenhkan@gmail.com>",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "licenses": [
     {
       "type": "MIT",
@@ -41,7 +41,7 @@
     "noflo-test": "0.0.6",
     "noflo-strings": "~0.1.2",
     "noflo-core": "~0.1.1",
-    "noflo-filesystem": "https://github.com/kenhkan/noflo-filesystem/tarball/master",
+    "noflo-filesystem": "https://github.com/kenhkan/noflo-filesystem/tarball/add_readfilesync",
     "noflo-underscore": "0.0.4"
   },
   "devDependencies": {
