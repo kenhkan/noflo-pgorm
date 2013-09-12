@@ -14,7 +14,7 @@
     "orm"
   ],
   "author": "Kenneth Kan <kenhkan@gmail.com>",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "licenses": [
     {
       "type": "MIT",
@@ -38,7 +38,9 @@
     "noflo-packets": "0.0.x",
     "grunt": "~0.4.1",
     "grunt-exec": "~0.4.2",
-    "noflo-test": "0.0.6"
+    "noflo-test": "0.0.6",
+    "noflo-strings": "~0.1.2",
+    "noflo-core": "~0.1.1"
   },
   "devDependencies": {
     "coffeelint": "*",
