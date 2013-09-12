@@ -24,7 +24,7 @@ WriteServer() OUT -> IN Packetize(pgorm/JsonToPackets)
 Url() OUT -> SERVER ConfigServer(pg/Postgres) ERROR -> IN Error()
 
 'columns' -> STRING ColumnsToken(strings/SendString)
-'../config/read_columns.pgsql' -> IN Path(pgorm/ResolvePath) OUT -> IN ReadReadColumsFile(filesystem/ReadFile) OUT -> STRING ReadColumns(strings/SendString)
+'../config/read_columns.pgsql' -> IN Path(pgorm/ResolvePath) OUT -> IN ReadReadColumsFile(filesystem/ReadFileSync) OUT -> STRING ReadColumns(strings/SendString)
 ' ' -> STRING ColumnsActivator(strings/SendString)
 
 Url() OUT -> IN ColumnsToken() OUT -> TOKEN ConfigServer()

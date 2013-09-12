@@ -65,6 +65,8 @@ class ConstructWrite extends noflo.Component
 
     for table, objects of @objects
       for object in objects
+        unless _.isObject object
+          throw new Error 'Incoming packets for noflo-pgorm need to be JavaScript objects'
         id = object[@pkey]
         keys = _.keys object
 
@@ -99,7 +101,7 @@ class ConstructWrite extends noflo.Component
             AS rows)
         """
 
-    _s.clean """
+    """
       BEGIN;
         SET TRANSACTION ISOLATION LEVEL SERIALIZABLE; --
 

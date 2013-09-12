@@ -32,7 +32,7 @@
     "noflo": "~0.4.0",
     "underscore": "1.4.x",
     "underscore.string": "2.3.x",
-    "noflo-pg": "0.0.x",
+    "noflo-pg": "~0.0.0",
     "noflo-groups": "0.0.x",
     "noflo-objects": "0.0.x",
     "noflo-packets": "0.0.x",
@@ -40,7 +40,9 @@
     "grunt-exec": "~0.4.2",
     "noflo-test": "0.0.6",
     "noflo-strings": "~0.1.2",
-    "noflo-core": "~0.1.1"
+    "noflo-core": "~0.1.1",
+    "noflo-filesystem": "https://github.com/kenhkan/noflo-filesystem/tarball/master",
+    "noflo-underscore": "0.0.4"
   },
   "devDependencies": {
     "coffeelint": "*",
@@ -57,7 +59,8 @@
     "grunt-contrib-watch": "~0.3.1",
     "component-json": "~0.1.4",
     "grunt-combine": "~0.8.3",
-    "grunt-component": "~0.1.2"
+    "grunt-component": "~0.1.2",
+    "noflo-handyman": "0.0.8"
   },
   "noflo": {
     "components": {
