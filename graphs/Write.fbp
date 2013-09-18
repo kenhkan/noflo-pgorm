@@ -31,7 +31,7 @@ Url() OUT -> IN ReadColumns() OUT -> TEMPLATE ConfigServer()
 Url() OUT -> IN ColumnsActivator() OUT -> IN ConfigServer()
 
 'columns' -> REGEXP FilterColumns(groups/FilterByGroup)
-'table_name' -> GROUPING GroupColumnsByTable(objects/GroupValueByAnother)
+'table_name' -> GROUPING GroupColumnsByTable(manipulate/GroupValueByAnother)
 'column_name' -> ENCLOSED GroupColumnsByTable()
 ConfigServer() OUT -> IN FilterColumns() OUT -> IN GroupColumnsByTable() OUT -> IN Definitions(core/Split)
 

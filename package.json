@@ -63,7 +63,7 @@
     "component-json": "~0.1.4",
     "grunt-combine": "~0.8.3",
     "grunt-component": "~0.1.2",
-    "noflo-handyman": "0.0.8"
+    "noflo-manipulate": "~0.0.1"
   },
   "noflo": {
     "components": {
