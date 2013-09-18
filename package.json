@@ -14,7 +14,7 @@
     "orm"
   ],
   "author": "Kenneth Kan <kenhkan@gmail.com>",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "licenses": [
     {
       "type": "MIT",
@@ -45,7 +45,8 @@
     "noflo-underscore": "0.0.4",
     "noflo-adapters": "~0.1.2",
     "noflo-cache": "0.0.1",
-    "noflo-flow": "~0.3.0"
+    "noflo-flow": "~0.3.0",
+    "noflo-manipulate": "~0.0.1"
   },
   "devDependencies": {
     "coffeelint": "*",
@@ -62,8 +63,7 @@
     "grunt-contrib-watch": "~0.3.1",
     "component-json": "~0.1.4",
     "grunt-combine": "~0.8.3",
-    "grunt-component": "~0.1.2",
-    "noflo-manipulate": "~0.0.1"
+    "grunt-component": "~0.1.2"
   },
   "noflo": {
     "components": {
