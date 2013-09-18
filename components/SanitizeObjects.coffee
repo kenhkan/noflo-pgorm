@@ -13,6 +13,7 @@ class SanitizeObjects extends noflo.Component
       definition: new noflo.Port
     @outPorts =
       out: new noflo.Port
+      error: new noflo.Port
 
     @inPorts.definition.on "connect", =>
       @definitions = {}
@@ -22,7 +23,14 @@ class SanitizeObjects extends noflo.Component
       @definitions[@table] ?= []
 
     @inPorts.definition.on "data", (def) =>
-      @definitions[@table].push def
+      error = new Error 'There must be a group indicating which table'
+      if @table?
+        @definitions[@table].push def
+      else if @outPorts.error.isAttached()
+        @outPorts.error.send error
+        @outPorts.error.disconnect()
+      else
+        throw error
 
     @inPorts.definition.on "disconnect", =>
       @table = null
